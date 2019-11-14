@@ -21,7 +21,7 @@ const getUserWithEmail = function(email) {
   WHERE email = $1
   `, [`${email}`])
   .then(res => res.rows[0]);
-}
+};
 exports.getUserWithEmail = getUserWithEmail;
 
 /**
@@ -35,7 +35,7 @@ const getUserWithId = function(id) {
   WHERE id = $1
   `, [id])
   .then(res => res.rows[0]);
-}
+};
 exports.getUserWithId = getUserWithId;
 
 
@@ -51,7 +51,7 @@ const addUser =  function(user) {
   RETURNING *;
   `, [`${user.name}`, `${user.email}`, `${user.password}`])
   .then(res => res.rows);
-}
+};
 exports.addUser = addUser;
 
 /// Reservations
@@ -73,7 +73,7 @@ const getAllReservations = function(guest_id, limit = 10) {
   LIMIT $2
   `, [`${guest_id}`, limit])
   .then(res => res.rows);
-}
+};
 exports.getAllReservations = getAllReservations;
 
 /// Properties
@@ -103,7 +103,7 @@ const getAllProperties = function(options, limit = 10) {
   if (options.owner_id) {
     queryParams.push(`${options.owner_id}`);
     queryStringParts.push(`owner_id = $${queryParams.length}`);
-  } 
+  }
   
   if (options.minimum_price_per_night) {
     queryParams.push(options.minimum_price_per_night * 100);
@@ -118,7 +118,6 @@ const getAllProperties = function(options, limit = 10) {
   if (queryStringParts.length > 0) {
     queryString += `WHERE ${queryStringParts.join(' AND ')}`;
   }
-  
 
   queryString += ' GROUP BY properties.id';
 
@@ -135,7 +134,7 @@ const getAllProperties = function(options, limit = 10) {
 
   return pool.query(queryString, queryParams)
   .then(res => res.rows);
-}
+};
 exports.getAllProperties = getAllProperties;
 
 
@@ -145,9 +144,11 @@ exports.getAllProperties = getAllProperties;
  * @return {Promise<{}>} A promise to the property.
  */
 const addProperty = function(property) {
-  const propertyId = Object.keys(properties).length + 1;
-  property.id = propertyId;
-  properties[propertyId] = property;
-  return Promise.resolve(property);
-}
+  return pool.query(`
+  INSERT INTO properties (title, description, thumbnail_photo_url, cover_photo_url, cost_per_night, street, city, province, post_code, country, parking_spaces, number_of_bathrooms, number_of_bedrooms)
+  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+  RETURNING *;
+  `, [`${property.title}`, `${property.description}`, `${property.thumbnail_photo_url}`, `${property.cover_photo_url}`, `${property.cost_per_night}`, `${property.street}`, `${property.city}`, `${property.province}`, `${property.post_code}`, `${property.country}`, `${property.parking_spaces}`, `${property.number_of_bathrooms}`, `${property.number_of_bedrooms}`])
+  .then(res => res.rows);
+};
 exports.addProperty = addProperty;
