@@ -6,8 +6,6 @@ const pool = new Pool({
   database: 'lightbnb'
 });
 
-const properties = require('./json/properties.json');
-const users = require('./json/users.json');
 /// Users
 
 /**
@@ -20,7 +18,11 @@ const getUserWithEmail = function(email) {
   SELECT * FROM users
   WHERE email = $1
   `, [`${email}`])
-  .then(res => res.rows[0]);
+  .then(res => {
+    if (res.rows.length < 1) {
+      return null;
+    }
+    return res.rows[0];})
 };
 exports.getUserWithEmail = getUserWithEmail;
 
