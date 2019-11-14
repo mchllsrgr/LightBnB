@@ -93,15 +93,33 @@ const getAllProperties = function(options, limit = 10) {
   JOIN property_reviews ON properties.id = property_id
   `;
 
-  if (options.city) {
-    queryParams.push(`%${options.city}`);
-    queryString += `WHERE city  LIKE $${queryParams.length}`;
+  if (options) {
+    queryStringParts = [];
+
+    if (options.city) {
+      queryParams.push(`%${options.city}`);
+      queryStringParts.push(`city  LIKE $${queryParams.length}`);
+    } 
+     
+    if (options.owner_id) {
+      queryParams.push(`${options.owner_id}`);
+      queryStringParts.push(`owner_id = $${queryParams.length}`);
+    } 
+    
+    if (options.minimum_price_per_night) {
+      queryParams.push(options.minimum_price_per_night * 100);
+      queryStringParts.push(`cost_per_night > $${queryParams.length}`);
+    }
+    
+    if (options.maximum_price_per_night) {
+      queryParams.push(options.maximum_price_per_night * 100);
+      queryStringParts.push(`cost_per_night < $${queryParams.length}`);
+    }
+
+    queryString += `WHERE ${queryStringParts.join(' AND ')}`;;
   }
 
-  if (options.owner_id) {
-    queryParams.push(`${options.owner_id}`);
-    queryString += `WHERE owner_id = $${queryParams.length}`;
-  }
+
 
   queryParams.push(limit);
   queryString += `
